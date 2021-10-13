@@ -1,0 +1,327 @@
+---
+title: "Projeto - Aprendizado de Máquina Supervisionado"
+author: "Fernanda Umberto (RA: 20943426), Guilherme Miranda (RA: 20996393) e Matheus Marques (RA: 20981531)"
+date: "01/05/2021"
+output: html_document
+---
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+<style>
+body {
+text-align: justify;
+background-color: #f9f9f9;
+font-family: 'Roboto', sans-serif;
+}
+p {
+font-size: 1.6rem;
+}
+li {
+font-size: 1.5rem;
+}
+h1.title {
+font-weight: bold;
+}
+h4.author{
+font-style: italic;
+}
+h2{
+font-weight: bold;
+}
+a{
+color: #0089ff;
+}
+hr { 
+  display: block;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  margin-left: auto;
+  margin-right: auto;
+  border-style: inset;
+  border-width: 2px;
+} 
+</style>
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<hr>
+## Apresentação do Problema
+
+A sociedade brasileira, ainda na década de 2020, se depara com um problema: o diagnóstico de transtornos do espectro autista no Brasil que, em geral, é feito tardiamente. Não existe, comumente, um período de desenvolvimento inequivocamente normal, embora em 20% dos casos os pais não tenham relatado comprometimentos durante os dois primeiros anos de vida da criança. Este quadro é associado à deficiência mental em cerca de 75% dos casos (FACION et al., 2002).  
+De acordo com o manual DSM-IV-TR (2002), os sintomas do autismo se fazem presentes antes dos 36 meses de idade. Portanto, é plausível supor que essas características exerçam um impacto no cotidiano das famílias e nas relações entre seus membros.  
+De acordo com diversas características comportamentais, foi possível classificar a gravidade, mensurar progressos ou retrocessos e programar intervenções e validá-las, desse modo foram elaborados diversos instrumentos de mensuração ou escalas de avaliação (MARTELETO et al., 2011).  
+Desta forma, é possível identificar como oportunidade de pesquisa, investigar quais técnicas computacionais podem ser empregados no processo de suporte aos profissionais supracitados, para que seja possível colaborar no processo de diagnóstico do espectro autista.  
+
+<hr>
+## Apresentação dos Dados  
+Para alcançar o objetivo deste projeto, foi realizada uma análise da base de dados coletada durante o mês de maio de 2020 via survey (Google Forms). Essas informações foram preenchidas por responsáveis, familares, amigos ou médicos de crianças autistas ou não. As perguntas feitas foram traduzidas de um dataset (também relacionado a autismo em crianças) fornecido pelo Fadi Fayez Thabtah do Departamento de Tecnologia Digital do Instituto Manukau em Auckland, da Nova Zelândia. Esse dataset está disponível no repositório de dados UCI. 
+
+O dataset gerado via respostas enviadas pelo Google Forms é composto de 117 linhas, cada uma representando uma resposta da survey. As colunas são:
+
+* Pergunta 1: A criança foi diagnosticada com icterícia por um médico? (Resposta "Sim" = 1, "Não" = 0).
+* Pergunta 2: A criança frequentemente escuta barulhos que outras pessoas geralmente não escutam? (Resposta "Sim" = 1, "Não" = 0).
+* Pergunta 3: A criança frequentemente dá mais atenção a imagem em geral do que em pequenos detalhes? (Resposta "Sim" = 1, "Não" = 0).
+* Pergunta 4: A criança é capaz de trocar entre atividades facilmente? (Resposta "Sim" = 1, "Não" = 0).
+* Pergunta 5: A criança consegue se concentrar nos estudos enquanto está conversando com alguém? (Resposta "Sim" = 1, "Não" = 0).
+* Pergunta 6: A criança é capaz de identificar os sentimentos de outras pessoas em relação a ela? (Resposta "Sim" = 1, "Não" = 0).
+* Pergunta 7: A criança tem dificuldade em imaginar personagens enquanto está lendo livros? (Resposta "Sim" = 1, "Não" = 0).
+* Pergunta 8: A criança geralmente coleta informações sobre coisas em geral? (Resposta "Sim" = 1, "Não" = 0).
+* Pergunta 9: A criança é capaz de identificar facilmente o que outra pessoa está pensando ou sentindo? (Resposta "Sim" = 1, "Não" = 0).
+* Pergunta 10: A criança tem dificuldade em confiar em pessoas? (Resposta "Sim" = 1, "Não" = 0).
+* Idade (variando entre 4 e 11).
+* Resultado (soma das 10 perguntas - cada resposta marcada como "Sim" = 1, "Não" = 0).
+* Classe (Possui autismo? - "Sim" = 1, "Não" = 0). 
+  
+<hr>
+## Estatística Descritiva  
+```{r warning=FALSE}
+# Criação do dataframe com os valores coletados na survey.
+dados_autismo <- data.frame("P1"=c(0,1,0,0,1,0,0,0,1,0,0,0,1,1,0,1,0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,0,0,1,1,1,0,0,1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,1,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0),
+"P2" =c(1,1,1,0,0,1,0,0,0,1,0,0,1,1,1,1,1,1,0,1,1,0,0,1,1,1,1,1,1,0,1,0,0,0,0,1,0,1,1,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,1,1,1,1,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,0,0,0,1,1,0,0,0,1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,0,0,0,0,1,0,1,0,0,1,0,1,0,1,0,1,1,1,1,1,0),
+"P3" =c(1,0,1,1,0,1,1,1,0,0,1,0,0,0,1,0,1,0,1,1,1,1,0,0,1,0,1,1,0,0,0,1,0,0,1,1,1,1,1,0,0,1,1,1,1,1,0,0,1,0,0,0,0,1,0,0,0,0,1,0,1,1,0,1,0,0,1,0,0,0,0,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,1,0,1,0,0,1,0,0,1,0,1,1,1,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0),
+"P4" =c(1,1,1,1,0,1,1,0,0,0,1,0,0,0,1,0,1,1,1,1,1,1,1,0,1,0,1,1,0,1,1,1,0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,1,1,0,1,0,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,0,1,0,1,0,0,0,1,0,1,1,1,0,1,0,1,0,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1),
+"P5" =c(0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0),                         
+"P6" =c(0,0,1,1,1,1,1,1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1,0,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,0,1,0,1,1,0,1,0,0,1,1,1,1,0,1,0,1,1,0,1,0,0,1,1,1,1,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,0,1,0,1,1),
+"P7" =c(0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,1,0,1,0,1,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,1,0,1,0,1,1,1,1,0,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0,1,1,0,0,0,0),  
+"P8" =c(1,1,1,1,1,1,1,1,0,1,0,1,1,0,1,0,1,0,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,0,1,0,0,1,1,0,0,0,0,1,1,1,1,0,1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,0,1,0,0,1,1,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1),
+"P9" =c(0,0,1,1,0,1,1,1,0,0,0,0,1,0,1,0,1,0,1,1,0,1,1,0,1,1,1,1,1,0,1,1,0,0,0,0,1,1,1,1,0,1,1,1,1,1,0,0,0,0,0,0,1,1,0,1,0,0,1,0,1,1,0,0,1,1,0,0,0,0,0,1,1,1,1,0,1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,0,1,1,1,1,0,1,0,0,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1),
+"P10" =c(0,0,0,0,0,0,0,0,1,0,0,1,1,1,0,0,1,0,0,0,1,0,0,1,0,1,0,0,0,1,0,0,1,1,1,0,0,0,0,0,1,0,0,1,0,0,1,1,0,1,0,1,0,0,1,1,1,1,0,1,0,0,0,0,1,1,1,0,1,1,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,1,1,1,1,0,0,0,1,0,1,1,1,0,0,1,0),
+"Idade" =c(6,11,7,4,5,8,10,7,7,7,6,8,8,10,8,4,5,6,7,6,7,4,7,4,5,10,5,5,10,8,6,10,7,4,8,11,5,10,10,9,4,5,8,6,10,4,11,6,9,8,6,5,10,8,11,6,7,5,5,10,10,4,11,9,6,5,9,6,10,10,10,5,11,8,7,4,8,10,5,7,11,11,7,7,7,9,8,8,7,9,4,9,9,10,9,9,7,4,7,10,4,8,7,11,11,7,11,4,4,5,7,8,10,4,4,11,8),
+"Resultado" =c(4,4,6,5,3,7,6,5,3,3,3,2,5,3,6,4,6,3,6,7,6,5,4,2,7,5,5,6,4,4,5,5,2,4,4,4,5,6,6,3,1,6,6,5,5,6,5,6,4,3,3,2,5,5,2,5,2,2,8,6,7,6,2,5,2,5,4,3,4,3,3,6,6,5,5,3,5,4,4,4,7,3,5,5,5,4,6,3,6,5,4,5,4,4,7,6,5,5,4,5,5,3,5,4,4,6,4,4,5,6,4,6,2,5,6,6,4),
+"Classe_Autismo" =c(0,1,0,0,1,0,0,0,1,0,1,1,1,1,0,1,0,0,1,0,1,1,0,1,0,0,0,0,0,0,0,0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,1,1,0,1,0,1,0,0,1,1,1,1,0,1,0,0,1,0,0,0,1,1,1,1,1,0,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0,1,0,1,0,1,1,1,0,1,0,0,0,0,1,1,0,0,0,0,0,1,0,1,0,1,1,0,0,0,0))
+
+library(DT)
+library(sjmisc)
+
+```
+
+<h3 style="text-align: justify;font-weight:bold">
+Tabela com o dataset:
+</h3>
+``` {r warning=FALSE}
+datatable(dados_autismo, options = list(
+  autoWidth = TRUE,
+  columnDefs = list(list(width = '50px'))
+))
+
+# Contagem de quantidade de Classe_Autismo igual a "Sim" e "Não".
+autismo_Sim <- col_count(dados_autismo, "Classe_Autismo", count = 1, append = FALSE)
+autismo_Nao <- col_count(dados_autismo, "Classe_Autismo", count = 0, append = FALSE)
+
+# Reduce das variáveis geradas no processo acima para pegar somente o valor inteiro.
+autismo_Sim_Value <- Reduce(`+`, autismo_Sim)
+autismo_Nao_Value <- Reduce(`+`, autismo_Nao)
+
+# Criação de outras duas tabelas para armazenar apenas os dados de autismo = "Sim" e "Não".
+dados_autismoSim <- subset(dados_autismo, Classe_Autismo == 1)
+dados_autismoNao <- subset(dados_autismo, Classe_Autismo == 0)
+
+
+```
+
+<div style="text-align: justify;">
+<h3 style="text-align: justify;font-weight:bold">
+Gráfico que representa a quantidade de crianças autistas e não autistas no dataset:
+</h3>
+```{r warning=FALSE}
+
+colors <- c("grey70" ,"black")
+
+valores_Autismo <- c(autismo_Sim_Value, autismo_Nao_Value)
+
+
+autism_labels <- round(valores_Autismo/sum(valores_Autismo) * 100, 1)
+
+autism_labels <- paste(autism_labels, "%", sep="")
+
+pie(valores_Autismo, main="Crianças autistas e não autistas", col=colors, labels=autism_labels,
+   cex=0.8)
+
+legend(1.0, 0.5, c(paste("Sim (",autismo_Sim_Value, ")"), paste("Não (",autismo_Nao_Value, ")")), cex=0.8, 
+   fill=colors)  
+
+```
+
+<h3 style="text-align: justify;font-weight:bold">
+Gráfico que representa a quantidade de crianças autistas e não autistas por idade:
+</h3>
+
+``` {r}
+counts <- table(dados_autismo$Classe_Autismo, dados_autismo$Idade)
+barplot(counts, main="Crianças autistas e não autistas por idade",
+  xlab="Idade", ylab = "Quantidade", col=c("darkblue","red"),
+  legend = c(paste("Não"), paste("Sim")), beside=TRUE)
+
+```
+
+<h3 style="text-align: justify;font-weight:bold"> 
+Gráfico que representa o resultado das perguntas para crianças autistas e não autistas:
+</h3>
+``` {r warning=FALSE}
+counts <- table(dados_autismo$Classe_Autismo, dados_autismo$Resultado)
+barplot(counts, main="Crianças autistas e não autistas pelo resultado do teste",
+  xlab="Resultado", ylab = "Quantidade", col=c("darkgreen","purple"),
+  legend = c(paste("Não"), paste("Sim")), beside=TRUE)
+
+```
+
+</div>
+<hr>
+## Execução de Modelos
+<h3 style="text-align: justify;font-weight:bold"> 
+Aplicação de Regressão Logística:
+</h3>
+
+```{r warning=FALSE}
+# Dividindo o dataset
+library(caTools)
+set.seed(100)
+trainRL <- sample(nrow(dados_autismo), 0.7*nrow(dados_autismo), replace = FALSE)
+TrainSetRL <- dados_autismo[trainRL,]
+ValidSetRL <- dados_autismo[-trainRL,]
+   
+# Treinando o modelo
+logistic_model <- glm(Classe_Autismo ~ P1 + P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9 + P10 + Idade + Resultado, family = "binomial", data = TrainSetRL)
+logistic_model
+   
+# Summary
+summary(logistic_model)
+   
+# Predição dos dados de teste baseado no modelo
+predict_reg <- predict(logistic_model, 
+                       ValidSetRL, type = "response")
+predict_reg  
+   
+# Alterando as probabilidades
+predict_reg <- ifelse(predict_reg >0.5, 1, 0)
+   
+# Validando a acurácia do modelo
+# Utilizando a matriz de confusão
+table(ValidSetRL$Classe_Autismo, predict_reg)
+
+informacoes_RegressaoLogistica <- data.frame("Acurácia"=c("88%"),
+"Precisão" =c("88%"),
+"Sensibilidade" =c("95%"))
+
+datatable(informacoes_RegressaoLogistica, options = list(
+  autoWidth = TRUE,
+  columnDefs = list(list(width = '50px'))
+))
+
+```
+
+<h3 style="text-align: justify;font-weight:bold"> 
+Aplicação de Random Forest:
+</h3>
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+library(randomForest)
+set.seed(100)
+train <- sample(nrow(dados_autismo), 0.7*nrow(dados_autismo), replace = FALSE)
+TrainSet <- dados_autismo[train,]
+ValidSet <- dados_autismo[-train,]
+```
+<h4 style="text-align: justify;font-weight:bold"> 
+Geração do TrainSet (treino) e ValidSet (validação):
+</h4>
+``` {r warning=FALSE}
+
+summary(TrainSet)
+summary(ValidSet)
+```
+
+<h4 style="text-align: justify;font-weight:bold"> 
+Modelo Random Forest:
+</h4>
+
+``` {r warning=FALSE}
+
+modeloRandomForest <- randomForest(factor(Classe_Autismo) ~ P1 + P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9 + P10 + Idade + Resultado, data = TrainSet, ntree = 500, mtry = 2, importance = TRUE)
+modeloRandomForest
+```
+
+``` {r warning=FALSE}
+# Predição no conjunto de treino
+predTrain <- predict(modeloRandomForest, TrainSet, type = "class")
+# Verificando a acurácia da classificação
+table(predTrain, TrainSet$Classe_Autismo)
+```
+
+``` {r warning=FALSE}
+
+# Predição no conjunto de validação
+predValid <- predict(modeloRandomForest, ValidSet, type = "class")
+
+table(predValid,ValidSet$Classe_Autismo)
+
+informacoes_RandomForest <- data.frame("Acurácia"=c("86%"),
+"Precisão" =c("71%"),
+"Sensibilidade" =c("84%"))
+
+datatable(informacoes_RandomForest, options = list(
+  autoWidth = TRUE,
+  columnDefs = list(list(width = '50px'))
+))
+```
+<h3 style="text-align: justify;font-weight:bold"> 
+Aplicação de Árvore de Decisão:
+</h3>
+
+``` {r message=FALSE, warning=FALSE, paged.print=FALSE}
+
+library(rpart,quietly = TRUE)
+library(caret,quietly = TRUE)
+library(rpart.plot,quietly = TRUE)
+library(rattle)
+library(dplyr)
+set.seed(100)
+trainDT <- sample(nrow(dados_autismo), 0.7*nrow(dados_autismo), replace = FALSE)
+TrainSetDT <- dados_autismo[trainDT,]
+ValidSetDT <- dados_autismo[-trainDT,]
+
+tree <- rpart(Classe_Autismo~.,
+              data=TrainSetDT,
+              method = "class",
+              minsplit=2, minbucket=2) # restrições para ramificação das árvores.
+
+rpart.plot(tree, nn=TRUE)
+
+
+predDT <- predict(object=tree, ValidSetDT, type = "class")
+
+t <- table(ValidSetDT$Classe_Autismo,predDT) 
+confusionMatrix(t)
+
+informacoes_ArvoreDecisao <- data.frame("Acurácia"=c("91%"),
+"Precisão" =c("95%"),
+"Sensibilidade" =c("91%"))
+
+datatable(informacoes_ArvoreDecisao, options = list(
+  autoWidth = TRUE,
+  columnDefs = list(list(width = '50px'))
+))
+```
+
+<hr>
+## Conclusão  
+Após a aplicação de três técnicas de aprendizagem de conjunto para classificação, obtemos os seguintes resultados:
+``` {r message=FALSE, warning=FALSE, paged.print=FALSE}
+
+dataframefinal <- data.frame(
+  Técnicas = c("Regressão Logística","Random Forest","Árvore de Decisão"),
+  Acurácia = c("88%","86%","91%"),
+  Precisão = c("88%","71%","95%"),
+  Sensibilidade = c("95%","84%","91%")
+)
+
+datatable(dataframefinal, options = list(
+  autoWidth = TRUE,
+  columnDefs = list(list(width = '50px'))
+))
+```
+<p>Com isso, é possível notar que a técnica que obteve melhores resultados em todas as métricas utilizadas (Acurácia, Precisão e Sensibilidade) foi a <b>Árvore de Decisão</b>, seguido de <b>Regressão Logística</b> e por fim, <b>Random Forest</b>.</p>
+<p>Para este caso, especificamente, a técnica mais eficiente e apropriada para auxiliar profissionais da área da saúde no diagnóstico de autismo em crianças seria a <b>Árvore de Decisão</b>.</p>
+<hr>
+## Referências Bibliográficas 
+* MARTELETO, Márcia Regina Fumagalli; SCHOEN-FERREIRA, Teresa Helena; CHIARI, Brasília Maria; PERISSINOTO, Jacy. Problemas de Comportamento em Crianças com Transtorno Autista. Disponível em: <http://www.scielo.br/pdf/ptp/v27n1/a02v27n1.pdf>.  
+* AMERICAN PSYCHIATRIC ASSOCIATION. Manual Diagnóstico e Estatístico de Transtornos Mentais. 5 ed. Porto Alegre: Artmed, 2014.  
+* THABTAH, Fadi Fayez. Autistic Spectrum Disorder Screening Data for Children Data Set. Disponível em: <https://archive.ics.uci.edu/ml/datasets/Autistic+Spectrum+Disorder+Screening+Data+for+Children++>.  
